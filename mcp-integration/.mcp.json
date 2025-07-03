@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "knowledge-persistence": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/greg/KnowledgePersistence-AI/mcp-integration/server/knowledge-server.js"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://postgres:SecureKnowledgePassword2025@192.168.10.90:5432/knowledge_persistence"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@knowledgepersistence-ai/mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for AI knowledge persistence",
+  "main": "server/knowledge-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/knowledge-server.js",
+    "dev": "node --watch server/knowledge-server.js",
+    "test": "node test/test-server.js",
+    "build": "echo 'No build step required'",
+    "lint": "echo 'No linting configured yet'"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "knowledge-persistence",
+    "claude",
+    "postgresql",
+    "pgvector"
+  ],
+  "author": "Lamco Development Office <lamco-office@users.noreply.github.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "pg": "^8.12.0",
+    "openai": "^4.67.0",
+    "uuid": "^10.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lamco-admin/KnowledgePersistence-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lamco-admin/KnowledgePersistence-AI/issues"
+  },
+  "homepage": "https://github.com/lamco-admin/KnowledgePersistence-AI#readme"
+}
