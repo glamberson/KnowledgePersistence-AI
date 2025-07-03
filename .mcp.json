@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "knowledge-persistence": {
-      "command": "python",
-      "args": ["/home/greg/KnowledgePersistence-AI/mcp-integration/knowledge-mcp-server.py"],
+      "command": "ssh",
+      "args": ["greg@192.168.10.90", "cd KnowledgePersistence-AI && source venv/bin/activate && python3 knowledge-mcp-server.py"],
       "env": {
         "DATABASE_URL": "postgresql://postgres:SecureKnowledgePassword2025@192.168.10.90:5432/knowledge_persistence"
       }
