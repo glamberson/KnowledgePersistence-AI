@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/greg"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "knowledge-persistence": {
+      "command": "python3",
+      "args": ["/home/greg/KnowledgePersistence-AI/mcp-integration/knowledge-mcp-server.py"],
+      "env": {
+        "PYTHONPATH": "/home/greg/KnowledgePersistence-AI"
+      }
+    }
+  }
+}
