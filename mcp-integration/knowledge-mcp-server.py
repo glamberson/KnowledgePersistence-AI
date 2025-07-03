@@ -415,6 +415,58 @@ class KnowledgeMCPServer:
                         },
                         "required": ["project_context"]
                     }
+                ),
+                Tool(
+                    name="discover_knowledge_patterns",
+                    description="Discover patterns in stored knowledge using advanced pattern recognition",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "project": {
+                                "type": "string",
+                                "description": "Project name to filter analysis (optional)"
+                            },
+                            "analysis_type": {
+                                "type": "string",
+                                "enum": ["cluster", "temporal", "progression", "all"],
+                                "description": "Type of pattern analysis to perform",
+                                "default": "all"
+                            },
+                            "min_importance": {
+                                "type": "integer",
+                                "description": "Minimum importance score for analysis",
+                                "default": 40
+                            }
+                        }
+                    }
+                ),
+                Tool(
+                    name="predict_knowledge_needs",
+                    description="Predict what knowledge will be needed based on current context",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "current_context": {
+                                "type": "string",
+                                "description": "Current work context or task description"
+                            },
+                            "project": {
+                                "type": "string",
+                                "description": "Project name for context-specific predictions (optional)"
+                            },
+                            "confidence_threshold": {
+                                "type": "number",
+                                "description": "Minimum confidence score for predictions (0.0-1.0)",
+                                "default": 0.3
+                            },
+                            "max_predictions": {
+                                "type": "integer",
+                                "description": "Maximum number of predictions to return",
+                                "default": 10
+                            }
+                        },
+                        "required": ["current_context"]
+                    }
                 )
             ]
         
@@ -436,6 +488,10 @@ class KnowledgeMCPServer:
                     return await self.get_project_patterns(**arguments)
                 elif name == "start_session":
                     return await self.start_session(**arguments)
+                elif name == "discover_knowledge_patterns":
+                    return await self.discover_knowledge_patterns(**arguments)
+                elif name == "predict_knowledge_needs":
+                    return await self.predict_knowledge_needs(**arguments)
                 else:
                     return [TextContent(type="text", text=f"Unknown tool: {name}")]
             except Exception as e:
@@ -719,6 +775,208 @@ class KnowledgeMCPServer:
         except Exception as e:
             logger.error(f"Error starting session: {e}")
             return [TextContent(type="text", text=f"Error starting session: {str(e)}")]
+    
+    async def discover_knowledge_patterns(self, project: str = None, analysis_type: str = "all", 
+                                        min_importance: int = 40) -> List[TextContent]:
+        """Discover patterns in stored knowledge using pattern recognition"""
+        try:
+            # Get knowledge items for analysis
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cur:
+                    base_query = """
+                    SELECT id, knowledge_type, category, title, content, importance_score,
+                           context_data, created_by, created_at
+                    FROM knowledge_items 
+                    WHERE importance_score >= %s
+                    """
+                    params = [min_importance]
+                    
+                    if project:
+                        base_query += " AND context_data->>'project' = %s"
+                        params.append(project)
+                    
+                    base_query += " ORDER BY created_at DESC"
+                    
+                    cur.execute(base_query, params)
+                    results = cur.fetchall()
+            
+            if not results:
+                return [TextContent(type="text", text="No knowledge items found for pattern analysis")]
+            
+            # Analyze patterns
+            response_sections = ["## Knowledge Pattern Discovery Results", ""]
+            
+            # Temporal patterns
+            if analysis_type in ["temporal", "all"]:
+                daily_counts = {}
+                type_progression = []
+                
+                for item in results:
+                    date_key = item['created_at'].strftime('%Y-%m-%d')
+                    daily_counts[date_key] = daily_counts.get(date_key, 0) + 1
+                    type_progression.append(item['knowledge_type'])
+                
+                # Find peak creation periods
+                avg_count = sum(daily_counts.values()) / len(daily_counts) if daily_counts else 0
+                peak_days = [date for date, count in daily_counts.items() if count > avg_count * 1.5]
+                
+                response_sections.extend([
+                    "### Temporal Patterns",
+                    f"- Total knowledge items analyzed: {len(results)}",
+                    f"- Active creation days: {len(daily_counts)}",
+                    f"- Peak creation periods: {', '.join(sorted(peak_days))}",
+                    f"- Average items per day: {avg_count:.1f}",
+                    ""
+                ])
+            
+            # Knowledge type progression analysis
+            if analysis_type in ["progression", "all"]:
+                progressions = []
+                sorted_items = sorted(results, key=lambda x: x['created_at'])
+                
+                for i in range(len(sorted_items) - 1):
+                    current_type = sorted_items[i]['knowledge_type']
+                    next_type = sorted_items[i + 1]['knowledge_type']
+                    if current_type != next_type:
+                        progressions.append(f"{current_type} → {next_type}")
+                
+                # Count progressions
+                progression_counts = {}
+                for progression in progressions:
+                    progression_counts[progression] = progression_counts.get(progression, 0) + 1
+                
+                response_sections.extend([
+                    "### Knowledge Evolution Patterns",
+                    "Common knowledge type progressions discovered:",
+                ])
+                
+                for progression, count in sorted(progression_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
+                    response_sections.append(f"  - **{progression}**: {count} instances")
+                
+                response_sections.append("")
+            
+            # Category clustering
+            if analysis_type in ["cluster", "all"]:
+                category_groups = {}
+                for item in results:
+                    category = item['category']
+                    if category not in category_groups:
+                        category_groups[category] = []
+                    category_groups[category].append(item)
+                
+                response_sections.extend([
+                    "### Knowledge Clustering by Category",
+                ])
+                
+                for category, items in sorted(category_groups.items(), key=lambda x: len(x[1]), reverse=True):
+                    avg_importance = sum(item['importance_score'] for item in items) / len(items)
+                    response_sections.append(f"  - **{category}**: {len(items)} items (avg importance: {avg_importance:.1f})")
+                
+                response_sections.append("")
+            
+            # Pattern insights and recommendations
+            response_sections.extend([
+                "### Pattern Insights",
+                f"- **Learning Acceleration Opportunities**: Knowledge type progressions indicate natural learning cycles",
+                f"- **Focus Areas**: {len(category_groups) if 'category_groups' in locals() else 'N/A'} distinct knowledge categories identified",
+                f"- **Growth Trends**: Pattern analysis reveals knowledge accumulation velocity",
+                ""
+            ])
+            
+            response_text = "\n".join(response_sections)
+            return [TextContent(type="text", text=response_text)]
+            
+        except Exception as e:
+            logger.error(f"Error discovering knowledge patterns: {e}")
+            return [TextContent(type="text", text=f"Error discovering patterns: {str(e)}")]
+    
+    async def predict_knowledge_needs(self, current_context: str, project: str = None,
+                                    confidence_threshold: float = 0.3, max_predictions: int = 10) -> List[TextContent]:
+        """Predict what knowledge will be needed based on current context"""
+        try:
+            # Get relevant knowledge items for prediction
+            with self.db.get_connection() as conn:
+                with conn.cursor() as cur:
+                    base_query = """
+                    SELECT id, knowledge_type, category, title, content, importance_score,
+                           context_data, created_by, created_at
+                    FROM knowledge_items 
+                    WHERE 1=1
+                    """
+                    params = []
+                    
+                    if project:
+                        base_query += " AND context_data->>'project' = %s"
+                        params.append(project)
+                    
+                    base_query += " ORDER BY importance_score DESC"
+                    
+                    cur.execute(base_query, params)
+                    results = cur.fetchall()
+            
+            if not results:
+                return [TextContent(type="text", text="No knowledge available for predictions")]
+            
+            # Perform context-based prediction
+            context_words = set(current_context.lower().split())
+            predictions = []
+            
+            for item in results:
+                # Calculate relevance score based on keyword overlap
+                content_text = f"{item['title']} {item['content']}".lower()
+                content_words = set(content_text.split())
+                
+                # Find common keywords
+                common_words = context_words & content_words
+                
+                if common_words:
+                    # Calculate confidence score
+                    keyword_overlap = len(common_words) / len(context_words) if context_words else 0
+                    importance_weight = item['importance_score'] / 100.0
+                    confidence_score = keyword_overlap * importance_weight
+                    
+                    if confidence_score >= confidence_threshold:
+                        predictions.append({
+                            'id': item['id'],
+                            'title': item['title'],
+                            'knowledge_type': item['knowledge_type'],
+                            'category': item['category'],
+                            'confidence': confidence_score,
+                            'importance': item['importance_score'],
+                            'common_keywords': list(common_words),
+                            'content_preview': item['content'][:200] + "..." if len(item['content']) > 200 else item['content']
+                        })
+            
+            # Sort by confidence and limit results
+            predictions.sort(key=lambda x: x['confidence'], reverse=True)
+            predictions = predictions[:max_predictions]
+            
+            if not predictions:
+                return [TextContent(type="text", text=f"No knowledge predictions found for context: '{current_context}' (confidence threshold: {confidence_threshold})")]
+            
+            # Format response
+            response_sections = [
+                f"## Knowledge Predictions for: '{current_context}'",
+                f"**Analysis**: {len(predictions)} relevant knowledge items identified",
+                f"**Confidence threshold**: {confidence_threshold}",
+                ""
+            ]
+            
+            for i, pred in enumerate(predictions, 1):
+                response_sections.extend([
+                    f"### {i}. {pred['title']} (Confidence: {pred['confidence']:.2f})",
+                    f"**Type**: {pred['knowledge_type']} | **Category**: {pred['category']} | **Importance**: {pred['importance']}",
+                    f"**Keywords**: {', '.join(pred['common_keywords'])}",
+                    f"**Preview**: {pred['content_preview']}",
+                    ""
+                ])
+            
+            response_text = "\n".join(response_sections)
+            return [TextContent(type="text", text=response_text)]
+            
+        except Exception as e:
+            logger.error(f"Error predicting knowledge needs: {e}")
+            return [TextContent(type="text", text=f"Error predicting knowledge needs: {str(e)}")]
 
 async def main():
     """Run the MCP server"""
