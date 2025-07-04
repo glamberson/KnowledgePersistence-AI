@@ -131,7 +131,7 @@ npm list -g | grep claude-code-router
 
 ```bash
 # Add to ~/.bashrc for persistence
-export ANTHROPIC_API_KEY="sk-ant-api03-..."
+export ANTHROPIC_API_KEY="[ANTHROPIC_API_KEY]"
 export OPENAI_API_KEY="sk-..."
 export GOOGLE_API_KEY="..."
 export PERPLEXITY_API_KEY="pplx-..."
