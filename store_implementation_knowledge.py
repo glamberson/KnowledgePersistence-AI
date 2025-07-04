@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 Store Implementation Knowledge
 ============================
 Record the self-assessment framework implementation as knowledge for future sessions.
@@ -17,7 +18,7 @@ DB_CONFIG = {
     "port": 5432,
     "database": "knowledge_persistence",
     "user": "postgres", 
-    "password": "SecureKnowledgePassword2025"
+    "password": os.getenv("DB_PASSWORD", "")
 }
 
 def get_db_connection():

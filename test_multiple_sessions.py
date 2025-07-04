@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 Test Enhanced Redirection Analysis on Multiple Sessions
 Compare analysis quality between sessions
 """
@@ -13,7 +14,7 @@ DB_CONFIG = {
     'port': 5432,
     'dbname': 'knowledge_persistence',
     'user': 'postgres',
-    'password': 'SecureKnowledgePassword2025'
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
 async def test_multiple_sessions():

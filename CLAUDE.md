@@ -152,14 +152,22 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ### Database Server Operations
 
-**Knowledge Access (MCP-First Approach)**:
+**Secure Knowledge Access (SSH Key + MCP-First)**:
 ```bash
-# Connect to database server
-ssh greg@192.168.10.90
+# SECURE: Use SSH config alias (no password exposure)
+ssh pgdbsrv
+
+# SECURE TOOLS: All operations via secure authentication
+./secure_ssh_simple.sh status    # System status (DB, API, Docker)
+./secure_ssh_simple.sh count     # Knowledge items count (429 items)
+./secure_ssh_simple.sh test-cag  # CAG performance test
+./secure_ssh_simple.sh shell     # Interactive SSH shell
+
+# SECURE SYNC: File synchronization with SSH keys
+./sync_to_server.sh              # Sync all files securely
 
 # PREFERRED: MCP knowledge access via CAG framework
-cd KnowledgePersistence-AI && source venv/bin/activate
-python3 -c "
+ssh pgdbsrv "cd KnowledgePersistence-AI && source venv/bin/activate && python3 -c \"
 from cag_mcp_integrated import CAGEngineMCP
 import asyncio
 async def test_mcp():
@@ -168,15 +176,14 @@ async def test_mcp():
     print(f'MCP retrieved {len(result)} knowledge items')
     return result
 asyncio.run(test_mcp())
-"
+\""
+
+# PASSWORDLESS SUDO: Specific operations without password
+ssh pgdbsrv "sudo systemctl status postgresql"    # ✅ No password required
+ssh pgdbsrv "sudo docker ps"                      # ✅ No password required
 
 # LEGACY: Direct database access (only when MCP unavailable)
-sudo systemctl status postgresql
-sudo -u postgres psql -d knowledge_persistence
-
-# API server status (health checks)
-curl http://192.168.10.90:8090/health
-curl http://192.168.10.90:8090/knowledge_items
+ssh pgdbsrv "sudo -u postgres psql -d knowledge_persistence"
 ```
 
 ### Development Environment
