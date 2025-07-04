@@ -503,24 +503,68 @@ CREATE TABLE cag_session_context (
 
 ### **2. Integration with Existing Systems**
 
-#### **MCP Integration**
+#### **CRITICAL UPDATE: MCP Integration Requirements**
+
+**🚨 AUDIT FINDINGS - Framework Integration Gap Identified**
+- **Current CAG Implementation**: Bypasses MCP framework with direct database access
+- **Integration Necessity**: MCP framework IS sufficient for all CAG capabilities
+- **Risk**: Duplicated infrastructure, missed standardization and monitoring
+
+#### **MCP Framework Assessment**
+**✅ EXISTING MCP CAPABILITIES SUFFICIENT:**
 ```python
-# Enhanced MCP server for CAG
-class CAGMCPServer(FastMCP):
-    def __init__(self):
-        super().__init__("CAG Knowledge Server")
-        self.cag_engine = CAGEngine()
-    
-    @self.tool()
-    async def access_cached_knowledge(self, query: str, knowledge_type: str = None):
-        """Direct access to cached knowledge - zero latency"""
-        return await self.cag_engine.access_cached_knowledge(query, knowledge_type)
-    
-    @self.tool()
-    async def warm_knowledge_cache(self, domain: str, priority: str = "normal"):
-        """Warm cache for specific domain"""
-        return await self.cag_engine.warm_domain_cache(domain, priority)
+# Available MCP tools that support CAG requirements:
+@tool()
+async def get_contextual_knowledge(situation: str, max_results: int = 10)
+    # Semantic search with vector similarity - supports CAG context loading
+
+@tool()  
+async def search_knowledge(query: str, knowledge_types: List[str] = None)
+    # Knowledge retrieval with filtering - supports CAG cache warming
+
+@tool()
+async def store_knowledge(knowledge_type: str, title: str, content: str)
+    # Knowledge persistence - supports CAG knowledge updates
+
+@tool()
+async def get_session_context(max_items: int = 20, project: str = None)
+    # Session context loading - supports CAG session continuity
 ```
+
+#### **REQUIRED: CAG-MCP Integration Refactor**
+```python
+# CAG components MUST use MCP tools instead of direct DB access
+class CAGContextManager:
+    def __init__(self, mcp_client):
+        self.mcp_client = mcp_client  # Use MCP instead of direct DB
+        
+    async def load_domain_knowledge(self, domains: List[str]) -> str:
+        # Use MCP search_knowledge instead of direct SQL
+        results = await self.mcp_client.search_knowledge(
+            query=" OR ".join(domains),
+            knowledge_types=['procedural', 'technical_discovery']
+        )
+        return self._format_knowledge_for_context(results)
+
+class CacheWarmingEngine:
+    def __init__(self, mcp_client):
+        self.mcp_client = mcp_client  # Use MCP instead of direct DB
+        
+    async def load_core_knowledge(self) -> List[Dict]:
+        # Use MCP get_contextual_knowledge instead of direct SQL
+        results = await self.mcp_client.get_contextual_knowledge(
+            situation="CAG core knowledge warming",
+            max_results=20
+        )
+        return self._convert_to_cache_format(results)
+```
+
+#### **Integration Benefits**
+- **Unified Framework**: Single knowledge access pathway
+- **Standardized Logging**: MCP provides comprehensive interaction tracking  
+- **Monitoring Integration**: Built-in performance and usage metrics
+- **Error Handling**: Consistent exception management across system
+- **Future Compatibility**: Seamless integration with MCP protocol updates
 
 #### **CCR Integration**
 ```json
