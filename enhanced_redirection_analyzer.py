@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 Enhanced Redirection Analysis with Semantic Assessment
 Implements comprehensive redirection analysis framework from audit findings
 Addresses inadequate methodology that only counted frequency
@@ -606,7 +607,7 @@ DB_CONFIG = {
     'port': 5432,
     'dbname': 'knowledge_persistence',
     'user': 'postgres',
-    'password': 'SecureKnowledgePassword2025'
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
 async def test_enhanced_redirection_analysis():

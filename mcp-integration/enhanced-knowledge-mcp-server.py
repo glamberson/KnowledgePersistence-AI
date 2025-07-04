@@ -45,7 +45,7 @@ DB_CONFIG = {
     "port": 5432,
     "database": "knowledge_persistence",
     "user": "postgres", 
-    "password": "SecureKnowledgePassword2025"
+    "password": os.getenv("DB_PASSWORD", "")
 }
 
 class SelfAssessmentEngine:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 AI Self-Assessment: First Session Analysis
 =========================================
 This is MY responsibility to assess MY own performance in this session.
@@ -17,7 +18,7 @@ DB_CONFIG = {
     "port": 5432,
     "database": "knowledge_persistence",
     "user": "postgres", 
-    "password": "SecureKnowledgePassword2025"
+    "password": os.getenv("DB_PASSWORD", "")
 }
 
 def get_db_connection():

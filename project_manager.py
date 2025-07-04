@@ -20,7 +20,7 @@ class ProjectManager:
             'port': 5432,
             'dbname': 'knowledge_persistence',
             'user': 'postgres',
-            'password': 'SecureKnowledgePassword2025'
+            'password': os.getenv('DB_PASSWORD', '')
         }
         self.base_path = Path('/home/greg/KnowledgePersistence-AI')
         self.projects_path = self.base_path / 'projects'

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 CAG Engine - Core Cache-Augmented Generation System
 Integrates Context Manager and Cache Warmer for revolutionary AI knowledge access
 Based on CAG_ARCHITECTURE_DESIGN.md specifications
@@ -225,7 +226,7 @@ DB_CONFIG = {
     'port': 5432,
     'dbname': 'knowledge_persistence',
     'user': 'postgres',
-    'password': 'SecureKnowledgePassword2025'
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
 async def test_cag_engine():

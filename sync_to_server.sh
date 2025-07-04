@@ -1,27 +1,44 @@
 #!/bin/bash
-# Sync CAG and session files to database server
+# Secure File Sync for KnowledgePersistence-AI
+# Uses SSH key authentication - NO password exposure
 # Addresses file synchronization gaps identified in session analysis
 
-echo "=== KnowledgePersistence-AI File Sync ==="
+echo "=== KnowledgePersistence-AI Secure File Sync ==="
 
-# Core CAG files
+# Check SSH key exists
+if [ ! -f ~/.ssh/id_ed25519_pgdbsrv ]; then
+    echo "❌ SSH key not found. Please run SSH setup first."
+    exit 1
+fi
+
+# Use SSH config alias for secure connection (no password exposure)
+SSH_CMD="ssh pgdbsrv"
+SCP_CMD="scp -i ~/.ssh/id_ed25519_pgdbsrv"
+
+# Core CAG files using secure SCP
 echo "Syncing CAG implementation files..."
-scp cag_*.py greg@192.168.10.90:/home/greg/KnowledgePersistence-AI/
+$SCP_CMD cag_*.py pgdbsrv:/home/greg/KnowledgePersistence-AI/
 
 # Session management files  
 echo "Syncing session management files..."
-scp complete_session_storage.py greg@192.168.10.90:/home/greg/KnowledgePersistence-AI/
-scp redirection_analysis_tools.py greg@192.168.10.90:/home/greg/KnowledgePersistence-AI/
+$SCP_CMD complete_session_storage.py redirection_analysis_tools.py pgdbsrv:/home/greg/KnowledgePersistence-AI/
 
 # Test files
 echo "Syncing test files..."
-scp test_*.py greg@192.168.10.90:/home/greg/KnowledgePersistence-AI/
+$SCP_CMD test_*.py pgdbsrv:/home/greg/KnowledgePersistence-AI/
+
+# Secure SSH tools
+echo "Syncing secure SSH tools..."
+$SCP_CMD secure_ssh_tools.py pgdbsrv:/home/greg/KnowledgePersistence-AI/
 
 # Updated documentation
 echo "Syncing updated documentation..."
-scp CLAUDE.md greg@192.168.10.90:/home/greg/KnowledgePersistence-AI/
+$SCP_CMD CLAUDE.md SESSION_HANDOFF_*.md pgdbsrv:/home/greg/KnowledgePersistence-AI/
 
 echo "Sync complete. Testing CAG availability on server..."
-ssh greg@192.168.10.90 "cd KnowledgePersistence-AI && source venv/bin/activate && python3 -c 'from cag_mcp_integrated import CAGEngineMCP; print(\"CAG import successful\")'"
+$SSH_CMD "cd KnowledgePersistence-AI && source venv/bin/activate && python3 -c 'from cag_mcp_integrated import CAGEngineMCP; print(\"✅ CAG import successful\")'"
 
-echo "=== Sync and Test Complete ==="
+echo "Testing secure SSH tools..."
+$SSH_CMD "cd KnowledgePersistence-AI && chmod +x secure_ssh_tools.py && python3 secure_ssh_tools.py status"
+
+echo "=== Secure Sync and Test Complete ==="

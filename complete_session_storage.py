@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import os
 Complete Session Storage - Store ENTIRE chat history
 This addresses the critical gap identified in session storage
 """
@@ -147,7 +148,7 @@ DB_CONFIG = {
     'port': 5432,
     'dbname': 'knowledge_persistence',
     'user': 'postgres',
-    'password': 'SecureKnowledgePassword2025'
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
 async def main():
