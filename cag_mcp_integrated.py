@@ -53,7 +53,7 @@ class MCPKnowledgeClient:
         
         # In real implementation, this would call MCP tools
         # For now, implementing mock that follows MCP patterns
-        return await self._call_mcp_tool("get_contextual_knowledge", {
+        return await self._call_mcp_tool("contextual_knowledge", {
             "situation": situation,
             "max_results": max_results
         })
@@ -89,7 +89,7 @@ class MCPKnowledgeClient:
         if not self.mcp_available:
             return self._mock_session_context(max_items, project)
             
-        return await self._call_mcp_tool("get_session_context", {
+        return await self._call_mcp_tool("session_context", {
             "max_items": max_items,
             "project": project
         })
@@ -97,7 +97,7 @@ class MCPKnowledgeClient:
     async def _call_mcp_tool(self, tool_name: str, params: Dict) -> any:
         """Call MCP tool - placeholder for actual MCP integration"""
         # This would be replaced with actual MCP tool calls in production
-        return getattr(self, f"_mock_{tool_name.replace('_', '')}")(
+        return getattr(self, f"_mock_{tool_name}")(
             **{k: v for k, v in params.items() if v is not None}
         )
     
@@ -132,7 +132,7 @@ class MCPKnowledgeClient:
             for i in range(min(limit, 8))
         ]
     
-    def _mock_store_knowledge(self, knowledge_type: str, title: str, content: str) -> str:
+    def _mock_store_knowledge(self, knowledge_type: str, title: str, content: str, category: str = None, importance_score: int = None) -> str:
         """Mock store knowledge for testing"""
         mock_id = f"mock-stored-{int(time.time())}"
         print(f"Mock stored: [{knowledge_type}] {title}")

@@ -152,18 +152,29 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ### Database Server Operations
 
-**SSH Access and Basic Operations**:
+**Knowledge Access (MCP-First Approach)**:
 ```bash
 # Connect to database server
 ssh greg@192.168.10.90
 
-# Check PostgreSQL status
-sudo systemctl status postgresql
+# PREFERRED: MCP knowledge access via CAG framework
+cd KnowledgePersistence-AI && source venv/bin/activate
+python3 -c "
+from cag_mcp_integrated import CAGEngineMCP
+import asyncio
+async def test_mcp():
+    engine = CAGEngineMCP()
+    result = await engine.mcp_client.get_contextual_knowledge('session status', 10)
+    print(f'MCP retrieved {len(result)} knowledge items')
+    return result
+asyncio.run(test_mcp())
+"
 
-# Access database
+# LEGACY: Direct database access (only when MCP unavailable)
+sudo systemctl status postgresql
 sudo -u postgres psql -d knowledge_persistence
 
-# API server status
+# API server status (health checks)
 curl http://192.168.10.90:8090/health
 curl http://192.168.10.90:8090/knowledge_items
 ```

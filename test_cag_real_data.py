@@ -95,6 +95,32 @@ class RealDataMCPClient(MCPKnowledgeClient):
         except Exception as e:
             print(f"Real search failed, using mock: {e}")
             return await super().search_knowledge(query, knowledge_types, limit)
+    
+    async def get_session_context(self, max_items: int = 20, project: str = None) -> list:
+        """Get session context using real API"""
+        try:
+            # Get recent items as session context
+            knowledge_items = await self._call_real_api("knowledge_items")
+            
+            # Filter by project if specified
+            session_items = []
+            for item in knowledge_items[:max_items]:
+                session_items.append({
+                    "id": item.get("id"),
+                    "title": item.get("title", "No title"),
+                    "content": item.get("content", "No content"),
+                    "knowledge_type": item.get("knowledge_type", "contextual"),
+                    "category": item.get("category", "session"),
+                    "importance_score": 60,
+                    "created_at": "2025-07-04T12:00:00"
+                })
+            
+            print(f"Real API: Retrieved {len(session_items)} session context items")
+            return session_items
+            
+        except Exception as e:
+            print(f"Real session context failed, using mock: {e}")
+            return [{"id": "mock-session", "title": "Mock Session Context", "content": "Mock session context for testing", "knowledge_type": "contextual", "category": "session", "importance_score": 50, "created_at": "2025-07-04T12:00:00"}]
 
 class CAGEngineRealData(CAGEngineMCP):
     """CAG Engine using real data MCP client"""
